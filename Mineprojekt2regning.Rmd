@@ -1,0 +1,89 @@
+---
+title: "Exam template - Bayesian networks - 2020"
+author: "SÃ¸ren HÃ¸jsgaard"
+date: "28/10/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Introduction
+
+This exercise is about the Bayesian networks as discussed
+in Mathematical Modelling. During the oral
+exam you will have 20 min to present the exercise. You decide what topics to
+cover and how to present them, however, we will ask questions to any part of the
+exercise and presentation. Feel free to work in small groups.
+
+
+
+## Belief propagation
+
+Consider the following excerpt from the chest clinic examples:
+
+```{r}
+library(gRbase)
+library(gRain)
+library(bnlearn)
+library(magrittr)
+dg1 <- dag(~ S + L|S + X|L:S + B|S + D|L:B)
+plot(dg1)
+```
+
+
+The dataset 
+```{r}
+data(chestSim1000, package="gRbase")
+head(chestSim1000)
+use <-  c("asia",   "tub" ,   "smoke" , "lung"   ,"bronc" , "either" ,"xray"  , "dysp")  
+dat1 <- chestSim1000
+mm1 <- hc(dat1) # From empty graph
+mm1
+
+sat <- random.graph(use, prob = 1)
+mm2 <- hc(dat1,start = sat)
+mm2
+
+par(mfrow=c(1,2))
+plot(mm1)
+plot(mm2)
+
+## Create Bayesian network
+fit1 <- bn.fit(mm1, dat1)
+fit2 <- bn.fit(mm2, dat1)
+  
+bn1 <- as.grain(fit1)
+bn2 <- as.grain(fit2)
+
+
+## Sample 40 random rows
+set.seed(1213)
+userow <- sample(nrow(dat1), 40)
+wdat1 <- dat1[userow,]
+
+pred1 <- predict(bn1, newdata=wdat1, response="either")
+pred2 <- predict(bn2, newdata=wdat1, response="either")
+
+table(wdat1$either, pred1$pred$either)
+table(wdat1$either, pred2$pred$either)
+```
+
+contains ``data'' from which the conditional probability tables (CPTs) can be estimated.
+
+1. Extract the necessary CPTs from data, and construct the Bayesian network. 
+1.  What does information about *dysp* tell is about *smoke*, i.e.\ what is the conditional distribution *smoke* given *dysp*?
+1.  If we know *smoke*, what does additional information about *bronc* tell us about *lung*? That is, what is the conditional distribution of *lung* given *smoke*, and what is the conditional distribution of *lung* given *smoke* and *bronc*?
+1.  If we know *smoke* and *dysp*, what does additional information about *bronc* tell us about *lung*?
+1.  Sketch the message passing algorithm ofr finding clique marginals for this specific example.
+
+## Learning networks
+
+Consider the *cad* data in gRbase. There are two datasets: *cad1* which is complete and *cad2* which has missing values here and there.
+
+1. Use the hill climbing algorithm function from the bnlearn package to estimate different Bayesian networks based on data *cad1*. See R script provided elsewhere.
+
+1. Predict the value of the CAD variable in the dataset *cad1* for each of the models you find. Predict the value of the CAD variable in the dataset *cad2* for each of the models you find. Is it most appropriate to evaluate the models based on *cad1* or on *cad2*.
+
+1. Compute the misclassification probabilities for persons with CAD and persons without CAD for each model. Which misclassification is most severe?
