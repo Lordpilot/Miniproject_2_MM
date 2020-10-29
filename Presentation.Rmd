@@ -8,3 +8,78 @@ output: pdf_document
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 ```
+
+```{r, include=FALSE}
+library(gRbase)
+```
+
+We have the dataset ChestSim1000
+```{r}
+data(chestSim1000, package="gRbase")
+head(chestSim1000)
+```
+
+This is a hyphotetical Chest Clinic problem, by Lauritzen and Spiegelhalter. (ref til https://arxiv.org/pdf/1301.7394.pdf)
+
+Here is a short explanation of the variables in the dataset.
+
+* asia $\rightarrow$ subject has visited asia
+* tub $\rightarrow$ subject has tuberculosis
+* smoke $\rightarrow$ subject is a smoker
+* lung $\rightarrow$ subject has lung cancer
+* bronc $\rightarrow$ subject has bronchitis
+* either $\rightarrow$ subject has either tuberculosis or lungcancer
+* xray $\rightarrow$ subject has positive X-ray
+* dysp $\rightarrow$ Subject has dyspnoea
+
+Shortness-of-breath (dyspnoea) may be due to tuberculosis, lung cancer, bronchitis, none of them, or more than one of them. A recent visit to Asia increases the chances of tuberculosis, while smoking is known to be a risk factor for both lung cancer and bronchitis. The results of a single chest X-ray do not discriminate between lung cancer and tuberculosis, as does neither the presence nor absence of dyspnoea. (citat direkte sat ind fra https://arxiv.org/pdf/1301.7394.pdf)
+
+```{r}
+dg1 <- dag(~ S + L|S + X|L:S + B|S + D|L:B)
+plot(dg1)
+```
+
+
+
+
+```{r}
+x <- chestSim1000$asia
+y <- chestSim1000$tub
+
+P1 <- function(x,y){
+  a11 <- length(which(x == "yes" & y == "yes"))/length(x)
+  a12 <- length(which(x == "no" & y == "yes"))/length(x)
+  a21 <- length(which(x == "yes" & y == "no"))/length(x)
+  a22 <- length(which(x == "no" & y == "no"))/length(x)
+  mat <- matrix(c(a11,a12, a21,a22), nrow = 2, byrow = TRUE, dimnames = list(c("yes","no"),c("yes","no")))
+  print(mat)
+}
+P1(chestSim1000$asia,chestSim1000$tub)
+
+
+
+       
+       length(which(chestSim1000$asia == "yes" & chestSim1000$tub == "yes"))
+
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
