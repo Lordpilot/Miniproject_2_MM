@@ -41,30 +41,22 @@ plot(dg1)
 
 
 
-
 ```{r}
-x <- chestSim1000$asia
-y <- chestSim1000$tub
-
-P1 <- function(x,y){
+P1 <- function(obj, i, j){
+  x <- unlist(obj[which(names(obj) == i)])
+  y <- unlist(obj[which(names(obj) == j)])
   a11 <- length(which(x == "yes" & y == "yes"))/length(x)
   a12 <- length(which(x == "no" & y == "yes"))/length(x)
   a21 <- length(which(x == "yes" & y == "no"))/length(x)
   a22 <- length(which(x == "no" & y == "no"))/length(x)
   mat <- matrix(c(a11,a12, a21,a22), nrow = 2, byrow = TRUE, dimnames = list(c("yes","no"),c("yes","no")))
+  names(dimnames(mat)) <- c(j,i)
   print(mat)
 }
-P1(chestSim1000$asia,chestSim1000$tub)
+P1(chestSim1000, "asia", "tub")
 
-
-
-       
-       length(which(chestSim1000$asia == "yes" & chestSim1000$tub == "yes"))
-
+P1(chestSim1000, "smoke", "lung")
 ```
-
-
-
 
 
 
