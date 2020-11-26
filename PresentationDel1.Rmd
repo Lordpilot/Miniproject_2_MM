@@ -1,0 +1,237 @@
+---
+title: "MM2-eksamen"
+author: "Mads Hovaldt"
+date: "28/10/2020"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r, include=FALSE}
+library(gRbase)
+library(gRain)
+```
+
+We have the dataset ChestSim1000
+```{r}
+data(chestSim1000, package="gRbase")
+head(chestSim1000)
+```
+
+This is a hyphotetical Chest Clinic problem, by Lauritzen and Spiegelhalter. (ref til https://arxiv.org/pdf/1301.7394.pdf)
+
+Here is a short explanation of the variables in the dataset.
+
+* asia $\rightarrow$ subject has visited asia
+* tub $\rightarrow$ subject has tuberculosis
+* smoke $\rightarrow$ subject is a smoker
+* lung $\rightarrow$ subject has lung cancer
+* bronc $\rightarrow$ subject has bronchitis
+* either $\rightarrow$ subject has either tuberculosis or lungcancer
+* xray $\rightarrow$ subject has positive X-ray
+* dysp $\rightarrow$ Subject has dyspnoea
+
+Shortness-of-breath (dyspnoea) may be due to tuberculosis, lung cancer, bronchitis, none of them, or more than one of them. A recent visit to Asia increases the chances of tuberculosis, while smoking is known to be a risk factor for both lung cancer and bronchitis. The results of a single chest X-ray do not discriminate between lung cancer and tuberculosis, as does neither the presence nor absence of dyspnoea. (citat direkte sat ind fra https://arxiv.org/pdf/1301.7394.pdf)
+
+```{r}
+dg1 <- dag(~ S + L|S + X|L:S + B|S + D|L:B)
+plot(dg1)
+```
+
+
+
+
+```{r}
+dg2<-dag(~ asia+tub|asia+ either|tub:lung+smoke+lung|smoke+bronc|smoke+dysp|either:bronc+xray|either)
+plot(dg2)
+```
+
+
+# Opgave 1 
+```{r} 
+
+
+Counting1 <- function(x,y,z){ #counting the number of observation for x and y
+ if (x!=0 && y!=0 && z==0){
+  a11 <- (length(which(chestSim1000[x]  == "yes" & chestSim1000[y] == "yes")))
+  a12 <- (length(which(chestSim1000[x] == "no" & chestSim1000[y] == "yes")))
+  a21 <- (length(which(chestSim1000[x] == "yes" & chestSim1000[y] == "no")))
+  a22 <- (length(which(chestSim1000[x] == "no" & chestSim1000[y] == "no")))
+  mat1 <- matrix(c(a11,a12, a21,a22), nrow = 2, byrow = TRUE, dimnames = list(c("yes","no"),c("yes","no")))
+  mat2 <- names(dimnames(mat1))<-c(y,x)
+  print(mat1)
+  } else if(y==0 && z==0) { # counting the number of observations given x and y=0
+  a11 <- (length(which(chestSim1000[x]  == "yes")))
+  a12 <- (length(which(chestSim1000[x] == "no")))
+  mat1 <- matrix(c(a11,a12),1,2 , dimnames = list(c(" "),c("yes","no")))
+  mat2 <- names(dimnames(mat1))<-c(" ",x)
+  print(mat1)
+  } else if(x!=0 && y!=0 && z!=0){ # counting the number of observations given x,y and z
+    a11 <- (length(which(chestSim1000[x]  == "yes" & chestSim1000[y] == "yes" & chestSim1000[z] == "yes")))
+    a12 <- (length(which(chestSim1000[x]  == "yes" & chestSim1000[y] == "no" & chestSim1000[z] == "yes")))
+    a13 <- (length(which(chestSim1000[x]  == "no" & chestSim1000[y] == "yes" & chestSim1000[z] == "yes")))
+    a14 <- (length(which(chestSim1000[x]  == "no" & chestSim1000[y] == "no" & chestSim1000[z] == "yes")))
+    a21 <- (length(which(chestSim1000[x]  == "yes" & chestSim1000[y] == "yes" & chestSim1000[z] == "no")))
+    a22 <- (length(which(chestSim1000[x]  == "yes" & chestSim1000[y] == "no" & chestSim1000[z] == "no")))
+    a23 <- (length(which(chestSim1000[x]  == "no" & chestSim1000[y] == "yes" & chestSim1000[z] == "no")))
+    a24 <- (length(which(chestSim1000[x]  == "no" & chestSim1000[y] == "no" & chestSim1000[z] == "no")))
+    mat1 <- matrix(c(NA,a11,a12,a13,a14, NA,a21,a22,a23,a24), nrow = 2, byrow = TRUE, dimnames = list(c("yes","no"),c(x,"yes/ yes","no/yes","yes/no","no/no")))
+    mat2<-names(dimnames(mat1))<-list(z,y)
+    print(mat1)
+  }
+}
+Counting1("asia","tub","0")
+Counting1("lung","tub","either") #why this result?
+Counting1("lung","tub","0") # no one has both lung and tub 
+Counting1("bronc","either","dysp")
+
+# Now we create a list of our CPT
+library(gRain)
+asia1 <- cptable(~asia, values = Counting1("asia","0","0"), levels = c("yes","no"))
+
+tub.asia1<-cptable(~tub|asia, values = Counting1("asia","tub","0"),levels = c("yes","no"))
+
+smoke1<-cptable(~smoke,values = Counting1("smoke","0","0"),levels = c("yes","no"))
+
+lung.smoke1<-cptable(~lung|smoke,values = Counting1("smoke","lung","0"),levels = c("yes","no"))
+
+bronc.smoke1<-cptable(~bronc|smoke,values = Counting1("smoke","bronc","0"),levels = c("yes","no"))
+
+either.lung.tub1<-cptable(~either|lung:tub,values = Counting1("lung","tub","either")[,2:5],levels = c("yes","no")) 
+
+xray.either1<-cptable(~xray|either,values = Counting1("either","xray","0"),levels = c("yes","no"))
+
+dysp.bronc.either1<-cptable(~dysp|bronc:either,values = Counting1("bronc","either","dysp")[,2:5],levels = c("yes","no"))
+
+CTP.List1 <- compileCPT(list(asia1,tub.asia1,smoke1,lung.smoke1,bronc.smoke1,either.lung.tub1,xray.either1,dysp.bronc.either1))
+CTP.List1
+
+CTP.List1$asia
+CTP.List1$tub
+CTP.List1$smoke
+CTP.List1$lung
+CTP.List1$bronc
+CTP.List1$either # the normal method can't read the CPT when we have 3 variables
+CTP.List1$xray
+CTP.List1$dysp # the normal method can't read the CPT when we have 3 variables
+ftable(CTP.List1$either, row.vars = 1)
+ftable(CTP.List1$dysp, row.vars = 1)
+
+```
+
+# Opgave 2
+```{r}
+dysp1 <- cptable(~ dysp,values = Counting1("dysp","0","0"),levels = c("yes","no"))
+smoke.dysp1 <- cptable(~smoke|dysp,values = Counting1("dysp","smoke","0"),levels = c("yes","no"))
+
+CTP.list2 <- compileCPT(list(dysp1,smoke.dysp1))
+CTP.list2
+CTP.list2$smoke
+```
+
+# Opgave 3
+```{r}
+smoke1 <- cptable(~ smoke,values = Counting1("smoke","0","0"),levels = c("yes","no"))
+bronc1 <- cptable(~bronc,values = Counting1("bronc","0","0"),levels = c("yes","no"))
+lung.smoke1 <- cptable(~lung1|smoke,values = Counting1("smoke","lung","0"),levels = c("yes","no"))
+lung.smoke.bronc1 <- cptable(~lung2|smoke:bronc,values = Counting1("smoke","bronc","lung")[,2:5],levels = c("yes","no"))
+
+CTP.list3 <- compileCPT(list(smoke1,bronc1,lung.smoke1,lung.smoke.bronc1))
+CTP.list3
+CTP.list3$lung1
+CTP.list3$lung2
+ftable(CTP.list3$lung2, row.vars = 1)
+```
+
+# Opgave 4
+```{r}
+Counting2 <- function(x,y,z,w){ #counting the number of observation for x and y
+    a11 <- (length(which(chestSim1000[x]  == "yes" & chestSim1000[y] == "yes" & chestSim1000[z] == "yes" & chestSim1000[w] == "yes")))
+    a12 <- (length(which(chestSim1000[x]  == "yes" & chestSim1000[y] == "yes" & chestSim1000[z] == "no" & chestSim1000[w] == "yes")))
+    a13 <- (length(which(chestSim1000[x]  == "yes" & chestSim1000[y] == "no" & chestSim1000[z] == "yes" & chestSim1000[w] == "yes")))
+    a14 <- (length(which(chestSim1000[x]  == "yes" & chestSim1000[y] == "no" & chestSim1000[z] == "no" & chestSim1000[w] == "yes")))
+    a15 <- (length(which(chestSim1000[x]  == "no" & chestSim1000[y] == "yes" & chestSim1000[z] == "yes" & chestSim1000[w] == "yes")))
+    a16 <- (length(which(chestSim1000[x]  == "no" & chestSim1000[y] == "yes" & chestSim1000[z] == "no" & chestSim1000[w] == "yes")))
+    a17 <- (length(which(chestSim1000[x]  == "no" & chestSim1000[y] == "no" & chestSim1000[z] == "yes" & chestSim1000[w] == "yes")))
+    a18 <- (length(which(chestSim1000[x]  == "no" & chestSim1000[y] == "no" & chestSim1000[z] == "no" & chestSim1000[w] == "yes")))
+    
+    a21 <- (length(which(chestSim1000[x]  == "yes" & chestSim1000[y] == "yes" & chestSim1000[z] == "yes" & chestSim1000[w] == "no")))
+    a22 <- (length(which(chestSim1000[x]  == "yes" & chestSim1000[y] == "yes" & chestSim1000[z] == "no" & chestSim1000[w] == "no")))
+    a23 <- (length(which(chestSim1000[x]  == "yes" & chestSim1000[y] == "no" & chestSim1000[z] == "yes" & chestSim1000[w] == "no")))
+    a24 <- (length(which(chestSim1000[x]  == "yes" & chestSim1000[y] == "no" & chestSim1000[z] == "no" & chestSim1000[w] == "no")))
+    a25 <- (length(which(chestSim1000[x]  == "no" & chestSim1000[y] == "yes" & chestSim1000[z] == "yes" & chestSim1000[w] == "no")))
+    a26 <- (length(which(chestSim1000[x]  == "no" & chestSim1000[y] == "yes" & chestSim1000[z] == "no" & chestSim1000[w] == "no")))
+    a27 <- (length(which(chestSim1000[x]  == "no" & chestSim1000[y] == "no" & chestSim1000[z] == "yes" & chestSim1000[w] == "no")))
+    a28 <- (length(which(chestSim1000[x]  == "no" & chestSim1000[y] == "no" & chestSim1000[z] == "no" & chestSim1000[w] == "no")))
+    mat1 <- matrix(c(a11,a12,a13,a14,a15,a16,a17,a18, a21,a22,a23,a24,a25,a26,a27,a28), nrow = 2, byrow = TRUE, dimnames = list(c("yes","no"),c("yyy","nyy","yny","nny","yyn","nyn","ynn","nnn")))
+    mat2<-names(dimnames(mat1))<-list(w,c(x,y,z))
+    print(mat1)
+}
+Counting2("smoke","dysp","bronc","lung")
+Counting1("smoke", "dysp", "lung")
+
+smoke1 <- cptable(~ smoke,values = Counting1("smoke","0","0"),levels = c("yes","no"))
+dysp1 <- cptable(~ dysp,values = Counting1("dysp","0","0"),levels = c("yes","no"))
+bronc1 <- cptable(~ bronc,values = Counting1("bronc","0","0"),levels = c("yes","no"))
+lung.smoke.dysp1 <- cptable(~lung1|smoke:dysp, values = Counting1("smoke", "dysp", "lung")[,2:5],levels = c("yes","no"))
+lung.smoke.dysp.bronc1 <- cptable(~lung2|bronc:dysp:smoke, values = Counting2("bronc","dysp","smoke","lung"),levels = c("yes", "no"))
+
+CTP.list4 <- compileCPT(list(smoke1,dysp1,bronc1,lung.smoke.dysp1,lung.smoke.dysp.bronc1))
+CTP.list4
+CTP.list4$lung1
+ftable(CTP.list4$lung1, row.vars = 1)
+CTP.list4$lung2
+ftable(CTP.list4$lung2, row.vars = 1)
+
+
+```
+
+# Opgave 5
+```{r}
+Bay.net1 <- grain(CTP.List1)
+Bay.net1 <- compile(Bay.net1)
+Bay.net1
+plot(Bay.net1$dag)
+plot(moralize(Bay.net1$dag))
+plot(triangulate(moralize(Bay.net1$dag)))
+
+Bay.net2 <- grain(CTP.list2)
+Bay.net2 <- compile(Bay.net2)
+Bay.net2
+plot(Bay.net2$dag)
+plot(moralize(Bay.net2$dag))
+plot(triangulate(moralize(Bay.net2$dag)))
+
+Bay.net3 <- grain(CTP.list3)
+Bay.net3 <- compile(Bay.net3)
+Bay.net3
+plot(Bay.net3$dag)
+plot(moralize(Bay.net3$dag))
+plot(triangulate(moralize(Bay.net3$dag)))
+
+Bay.net4 <- grain(CTP.list4)
+Bay.net4 <- compile(Bay.net4)
+Bay.net4
+plot(Bay.net4$dag)
+plot(moralize(Bay.net4$dag))
+plot(triangulate(moralize(Bay.net4$dag)))
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
