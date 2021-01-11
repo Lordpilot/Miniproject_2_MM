@@ -96,27 +96,27 @@ bronc.smoke1<-cptable(~bronc|smoke,values = Counting1("smoke","bronc","0"),level
 either.lung.tub1<-cptable(~either|lung:tub,values = Counting1("lung","tub","either")[,2:5],levels = c("yes","no")) 
 xray.either1<-cptable(~xray|either,values = Counting1("either","xray","0"),levels = c("yes","no"))
 dysp.bronc.either1<-cptable(~dysp|bronc:either,values = Counting1("bronc","either","dysp")[,2:5],levels = c("yes","no"))
-CTP.List1 <- compileCPT(list(asia1,tub.asia1,smoke1,lung.smoke1,bronc.smoke1,either.lung.tub1,xray.either1,dysp.bronc.either1))
-CTP.List1
-CTP.List1$asia
-CTP.List1$tub
-CTP.List1$smoke
-CTP.List1$lung
-CTP.List1$bronc
-CTP.List1$either # the normal method can't read the CPT when we have 3 variables
-CTP.List1$xray
-CTP.List1$dysp # the normal method can't read the CPT when we have 3 variables
-ftable(CTP.List1$either, row.vars = 1)
-ftable(CTP.List1$dysp, row.vars = 1)
+CPT.List1 <- compileCPT(list(asia1,tub.asia1,smoke1,lung.smoke1,bronc.smoke1,either.lung.tub1,xray.either1,dysp.bronc.either1))
+CPT.List1
+CPT.List1$asia
+CPT.List1$tub
+CPT.List1$smoke
+CPT.List1$lung
+CPT.List1$bronc
+CPT.List1$either # the normal method can't read the CPT when we have 3 variables
+CPT.List1$xray
+CPT.List1$dysp # the normal method can't read the CPT when we have 3 variables
+ftable(CPT.List1$either, row.vars = 1)
+ftable(CPT.List1$dysp, row.vars = 1)
 ```
 
 # Opgave 2
 ```{r}
 dysp1 <- cptable(~ dysp,values = Counting1("dysp","0","0"),levels = c("yes","no"))
 smoke.dysp1 <- cptable(~smoke|dysp,values = Counting1("dysp","smoke","0"),levels = c("yes","no"))
-CTP.list2 <- compileCPT(list(dysp1,smoke.dysp1))
-CTP.list2
-CTP.list2$smoke
+CPT.list2 <- compileCPT(list(dysp1,smoke.dysp1))
+CPT.list2
+CPT.list2$smoke
 ```
 
 # Opgave 3
@@ -125,11 +125,11 @@ smoke1 <- cptable(~ smoke,values = Counting1("smoke","0","0"),levels = c("yes","
 bronc1 <- cptable(~bronc,values = Counting1("bronc","0","0"),levels = c("yes","no"))
 lung.smoke1 <- cptable(~lung1|smoke,values = Counting1("smoke","lung","0"),levels = c("yes","no"))
 lung.smoke.bronc1 <- cptable(~lung2|smoke:bronc,values = Counting1("smoke","bronc","lung")[,2:5],levels = c("yes","no"))
-CTP.list3 <- compileCPT(list(smoke1,bronc1,lung.smoke1,lung.smoke.bronc1))
-CTP.list3
-CTP.list3$lung1
-CTP.list3$lung2
-ftable(CTP.list3$lung2, row.vars = 1)
+CPT.list3 <- compileCPT(list(smoke1,bronc1,lung.smoke1,lung.smoke.bronc1))
+CPT.list3
+CPT.list3$lung1
+CPT.list3$lung2
+ftable(CPT.list3$lung2, row.vars = 1)
 ```
 
 # Opgave 4
@@ -163,35 +163,35 @@ dysp1 <- cptable(~ dysp,values = Counting1("dysp","0","0"),levels = c("yes","no"
 bronc1 <- cptable(~ bronc,values = Counting1("bronc","0","0"),levels = c("yes","no"))
 lung.smoke.dysp1 <- cptable(~lung1|smoke:dysp, values = Counting1("smoke", "dysp", "lung")[,2:5],levels = c("yes","no"))
 lung.smoke.dysp.bronc1 <- cptable(~lung2|bronc:dysp:smoke, values = Counting2("bronc","dysp","smoke","lung"),levels = c("yes", "no"))
-CTP.list4 <- compileCPT(list(smoke1,dysp1,bronc1,lung.smoke.dysp1,lung.smoke.dysp.bronc1))
-CTP.list4
-CTP.list4$lung1
-ftable(CTP.list4$lung1, row.vars = 1)
-CTP.list4$lung2
-ftable(CTP.list4$lung2, row.vars = 1)
+CPT.list4 <- compileCPT(list(smoke1,dysp1,bronc1,lung.smoke.dysp1,lung.smoke.dysp.bronc1))
+CPT.list4
+CPT.list4$lung1
+ftable(CPT.list4$lung1, row.vars = 1)
+CPT.list4$lung2
+ftable(CPT.list4$lung2, row.vars = 1)
 ```
 
 # Opgave 5
 ```{r}
-Bay.net1 <- grain(CTP.List1)
+Bay.net1 <- grain(CPT.List1)
 Bay.net1 <- compile(Bay.net1)
 Bay.net1
 plot(Bay.net1$dag)
 plot(moralize(Bay.net1$dag))
 plot(triangulate(moralize(Bay.net1$dag)))
-Bay.net2 <- grain(CTP.list2)
+Bay.net2 <- grain(CPT.list2)
 Bay.net2 <- compile(Bay.net2)
 Bay.net2
 plot(Bay.net2$dag)
 plot(moralize(Bay.net2$dag))
 plot(triangulate(moralize(Bay.net2$dag)))
-Bay.net3 <- grain(CTP.list3)
+Bay.net3 <- grain(CPT.list3)
 Bay.net3 <- compile(Bay.net3)
 Bay.net3
 plot(Bay.net3$dag)
 plot(moralize(Bay.net3$dag))
 plot(triangulate(moralize(Bay.net3$dag)))
-Bay.net4 <- grain(CTP.list4)
+Bay.net4 <- grain(CPT.list4)
 Bay.net4 <- compile(Bay.net4)
 Bay.net4
 plot(Bay.net4$dag)
@@ -238,7 +238,6 @@ bn2 <- as.grain(bn.fit(mm2, dat1))
 # Opgave 7
 ```{r}
 ## Predict data
-
 ## Sample 40 random rows
 set.seed(1213)
 userow <- sample(nrow(dat1), 40)
