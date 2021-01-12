@@ -19,7 +19,8 @@ library(gRain)
 We have the dataset ChestSim1000
 ```{r}
 data(chestSim1000, package="gRbase")
-head(chestSim1000)
+head(chestSim1000) # our data
+length(chestSim1000[,1]) # our tdata consists of 1000 observations
 ```
 
 This is a hyphotetical Chest Clinic problem, by Lauritzen and Spiegelhalter. (ref til https://arxiv.org/pdf/1301.7394.pdf)
@@ -39,7 +40,7 @@ Shortness-of-breath (dyspnoea) may be due to tuberculosis, lung cancer, bronchit
 
 ```{r}
 dg1 <- dag(~ S + L|S + X|L:S + B|S + D|L:B)
-plot(dg1)
+plot(dg1) # example of a bayesian network
 ```
 
 
@@ -47,7 +48,7 @@ plot(dg1)
 
 ```{r}
 dg2<-dag(~ asia+tub|asia+ either|tub:lung+smoke+lung|smoke+bronc|smoke+dysp|either:bronc+xray|either)
-plot(dg2)
+plot(dg2) # the Bayesian network for our data 
 ```
 
 
@@ -81,37 +82,38 @@ Counting1 <- function(x,y,z){ #counting the number of observation for x and y
     a22 <- (length(which(chestSim1000[x]  == "yes" & chestSim1000[y] == "no" & chestSim1000[z] == "no")))
     a23 <- (length(which(chestSim1000[x]  == "no" & chestSim1000[y] == "yes" & chestSim1000[z] == "no")))
     a24 <- (length(which(chestSim1000[x]  == "no" & chestSim1000[y] == "no" & chestSim1000[z] == "no")))
-    mat1 <- matrix(c(NA,a11,a12,a13,a14, NA,a21,a22,a23,a24), nrow = 2, byrow = TRUE, dimnames = list(c("yes","no"),c(x,"yes/ yes","no/yes","yes/no","no/no")))
-    mat2<-names(dimnames(mat1))<-list(z,y)
+    mat1 <- matrix(c(a11,a12,a13,a14, a21,a22,a23,a24), nrow = 2, byrow = TRUE, dimnames = list(c("yes","no"),c("yy","ny","yn","nn")))
+    mat2<-names(dimnames(mat1))<-list(z,c(x,y))
     print(mat1)
   }
 }
-Counting1("asia","tub","0")
-Counting1("lung","tub","either") #why this result?
+
+Counting1("asia","tub","0") # counted values
+Counting1("lung","tub","either") #here yy mean yes and yes for lung and tub
 Counting1("lung","tub","0") # no one has both lung and tub 
 Counting1("bronc","either","dysp")
 # Now we create a list of our CPT
 library(gRain)
-asia1 <- cptable(~asia, values = Counting1("asia","0","0"), levels = c("yes","no"))
-tub.asia1<-cptable(~tub|asia, values = Counting1("asia","tub","0"),levels = c("yes","no"))
+asia1 <- cptable(~asia, values = Counting1("asia","0","0"), levels = c("yes","no")) #putting observations together
+tub.asia1<-cptable(~tub|asia, values = Counting1("asia","tub","0"),levels = c("yes","no")) # tub given asia
 smoke1<-cptable(~smoke,values = Counting1("smoke","0","0"),levels = c("yes","no"))
 lung.smoke1<-cptable(~lung|smoke,values = Counting1("smoke","lung","0"),levels = c("yes","no"))
 bronc.smoke1<-cptable(~bronc|smoke,values = Counting1("smoke","bronc","0"),levels = c("yes","no"))
-either.lung.tub1<-cptable(~either|lung:tub,values = Counting1("lung","tub","either")[,2:5],levels = c("yes","no")) 
+either.lung.tub1<-cptable(~either|lung:tub,values = Counting1("lung","tub","either"),levels = c("yes","no")) 
 xray.either1<-cptable(~xray|either,values = Counting1("either","xray","0"),levels = c("yes","no"))
-dysp.bronc.either1<-cptable(~dysp|bronc:either,values = Counting1("bronc","either","dysp")[,2:5],levels = c("yes","no"))
-CTP.List1 <- compileCPT(list(asia1,tub.asia1,smoke1,lung.smoke1,bronc.smoke1,either.lung.tub1,xray.either1,dysp.bronc.either1))
-CTP.List1
-CTP.List1$asia
-CTP.List1$tub
-CTP.List1$smoke
-CTP.List1$lung
-CTP.List1$bronc
-CTP.List1$either # the normal method can't read the CPT when we have 3 variables
-CTP.List1$xray
-CTP.List1$dysp # the normal method can't read the CPT when we have 3 variables
-ftable(CTP.List1$either, row.vars = 1)
-ftable(CTP.List1$dysp, row.vars = 1)
+dysp.bronc.either1<-cptable(~dysp|bronc:either,values = Counting1("bronc","either","dysp"),levels = c("yes","no"))
+CPT.List1 <- compileCPT(list(asia1,tub.asia1,smoke1,lung.smoke1,bronc.smoke1,either.lung.tub1,xray.either1,dysp.bronc.either1))
+CPT.List1 # overview of all CPT's
+CPT.List1$asia #CPT for asia in percent 
+CPT.List1$tub
+CPT.List1$smoke
+CPT.List1$lung
+CPT.List1$bronc
+CPT.List1$either # the normal method can't read the CPT when we have 3 variables
+CPT.List1$xray
+CPT.List1$dysp # the normal method can't read the CPT when we have 3 variables
+ftable(CPT.List1$either, row.vars = 1) #ftable helps us read the CPT when we have more the two variables.
+ftable(CPT.List1$dysp, row.vars = 1)
 ```
 
 # Exercise 2
@@ -119,11 +121,11 @@ What does information about "dysp" tell us about "smoke", i.e. what is the condi
 
 # Answer
 ```{r}
-dysp1 <- cptable(~ dysp,values = Counting1("dysp","0","0"),levels = c("yes","no"))
-smoke.dysp1 <- cptable(~smoke|dysp,values = Counting1("dysp","smoke","0"),levels = c("yes","no"))
-CTP.list2 <- compileCPT(list(dysp1,smoke.dysp1))
-CTP.list2
-CTP.list2$smoke
+dysp1 <- cptable(~ dysp,values = Counting1("dysp","0","0"),levels = c("yes","no")) #counting the number of observations for dysp
+smoke.dysp1 <- cptable(~smoke|dysp,values = Counting1("dysp","smoke","0"),levels = c("yes","no")) # counting smoke given dysp
+CPT.list2 <- compileCPT(list(dysp1,smoke.dysp1)) #creating our CPT
+CPT.list2 # overview of CPT's
+CPT.list2$smoke #our CPT for smoke given dysp in percentage
 ```
 
 # Exercise 3
@@ -131,15 +133,15 @@ If we know "smoke", what does additional infomration about "bronc" tell us about
 
 # Answer
 ```{r}
-smoke1 <- cptable(~ smoke,values = Counting1("smoke","0","0"),levels = c("yes","no"))
-bronc1 <- cptable(~bronc,values = Counting1("bronc","0","0"),levels = c("yes","no"))
-lung.smoke1 <- cptable(~lung1|smoke,values = Counting1("smoke","lung","0"),levels = c("yes","no"))
-lung.smoke.bronc1 <- cptable(~lung2|smoke:bronc,values = Counting1("smoke","bronc","lung")[,2:5],levels = c("yes","no"))
-CTP.list3 <- compileCPT(list(smoke1,bronc1,lung.smoke1,lung.smoke.bronc1))
-CTP.list3
-CTP.list3$lung1
-CTP.list3$lung2
-ftable(CTP.list3$lung2, row.vars = 1)
+smoke1 <- cptable(~ smoke,values = Counting1("smoke","0","0"),levels = c("yes","no")) # counting smoke
+bronc1 <- cptable(~bronc,values = Counting1("bronc","0","0"),levels = c("yes","no")) # counting bronc
+lung.smoke1 <- cptable(~lung1|smoke,values = Counting1("smoke","lung","0"),levels = c("yes","no")) # counting lung given smoke
+lung.smoke.bronc1 <- cptable(~lung2|smoke:bronc,values = Counting1("smoke","bronc","lung"),levels = c("yes","no")) # counting smoke given smoke and bronc 
+CPT.list3 <- compileCPT(list(smoke1,bronc1,lung.smoke1,lung.smoke.bronc1)) #creating our CPT's
+CPT.list3 # overview
+CPT.list3$lung1
+CPT.list3$lung2 # conditional on two variables so not pretty
+ftable(CPT.list3$lung2, row.vars = 1) #for CPT's of more then two variables
 ```
 
 # Exercise 4
@@ -169,19 +171,19 @@ Counting2 <- function(x,y,z,w){ #counting the number of observation for x,y,z an
     mat2<-names(dimnames(mat1))<-list(w,c(x,y,z))
     print(mat1)
 }
-Counting2("smoke","dysp","bronc","lung")
+Counting2("smoke","dysp","bronc","lung") #our counted variables
 Counting1("smoke", "dysp", "lung")
-smoke1 <- cptable(~ smoke,values = Counting1("smoke","0","0"),levels = c("yes","no"))
+smoke1 <- cptable(~ smoke,values = Counting1("smoke","0","0"),levels = c("yes","no")) #counting smoke
 dysp1 <- cptable(~ dysp,values = Counting1("dysp","0","0"),levels = c("yes","no"))
 bronc1 <- cptable(~ bronc,values = Counting1("bronc","0","0"),levels = c("yes","no"))
-lung.smoke.dysp1 <- cptable(~lung1|smoke:dysp, values = Counting1("smoke", "dysp", "lung")[,2:5],levels = c("yes","no"))
+lung.smoke.dysp1 <- cptable(~lung1|smoke:dysp, values = Counting1("smoke", "dysp", "lung"),levels = c("yes","no"))
 lung.smoke.dysp.bronc1 <- cptable(~lung2|bronc:dysp:smoke, values = Counting2("bronc","dysp","smoke","lung"),levels = c("yes", "no"))
-CTP.list4 <- compileCPT(list(smoke1,dysp1,bronc1,lung.smoke.dysp1,lung.smoke.dysp.bronc1))
-CTP.list4
-CTP.list4$lung1
-ftable(CTP.list4$lung1, row.vars = 1)
-CTP.list4$lung2
-ftable(CTP.list4$lung2, row.vars = 1)
+CPT.list4 <- compileCPT(list(smoke1,dysp1,bronc1,lung.smoke.dysp1,lung.smoke.dysp.bronc1)) #creating CPT's
+CPT.list4 # overview
+CPT.list4$lung1
+ftable(CPT.list4$lung1, row.vars = 1) #pretty verison
+CPT.list4$lung2
+ftable(CPT.list4$lung2, row.vars = 1) #pretty version
 ```
 
 # Exercise 5
@@ -189,25 +191,32 @@ Sketch the message passing algorithm for finding clique marginals for this speci
 
 # Answer
 ```{r}
-Bay.net1 <- grain(CTP.List1)
-Bay.net1 <- compile(Bay.net1)
+# data from exercise 1
+Bay.net1 <- grain(CPT.List1) #turns our CPT into a graphical independent network
+Bay.net1 <- compile(Bay.net1) # complies our data
 Bay.net1
-plot(Bay.net1$dag)
-plot(moralize(Bay.net1$dag))
-plot(triangulate(moralize(Bay.net1$dag)))
-Bay.net2 <- grain(CTP.list2)
+plot(Bay.net1$dag) # plot using the relations used under construction
+plot(moralize(Bay.net1$dag)) # a version which drops directions
+plot(triangulate(moralize(Bay.net1$dag))) # will triangulate a undirected graph by adding fill-ins 
+
+# data from exercise 2
+Bay.net2 <- grain(CPT.list2)
 Bay.net2 <- compile(Bay.net2)
 Bay.net2
 plot(Bay.net2$dag)
 plot(moralize(Bay.net2$dag))
 plot(triangulate(moralize(Bay.net2$dag)))
-Bay.net3 <- grain(CTP.list3)
+
+# data from exercise 3
+Bay.net3 <- grain(CPT.list3)
 Bay.net3 <- compile(Bay.net3)
 Bay.net3
 plot(Bay.net3$dag)
 plot(moralize(Bay.net3$dag))
 plot(triangulate(moralize(Bay.net3$dag)))
-Bay.net4 <- grain(CTP.list4)
+
+# data from exercise 4
+Bay.net4 <- grain(CPT.list4)
 Bay.net4 <- compile(Bay.net4)
 Bay.net4
 plot(Bay.net4$dag)
