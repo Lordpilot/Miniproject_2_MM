@@ -20,7 +20,7 @@ We have the dataset ChestSim1000
 ```{r}
 data(chestSim1000, package="gRbase")
 head(chestSim1000) # our data
-length(chestSim1000[,1]) # our tdata consists of 1000 observations
+length(chestSim1000[,1]) # our data consists of 1000 observations
 ```
 
 This is a hyphotetical Chest Clinic problem, by Lauritzen and Spiegelhalter. (ref til https://arxiv.org/pdf/1301.7394.pdf)
@@ -193,7 +193,7 @@ Sketch the message passing algorithm for finding clique marginals for this speci
 ```{r}
 # data from exercise 1
 Bay.net1 <- grain(CPT.List1) #turns our CPT into a graphical independent network
-Bay.net1 <- compile(Bay.net1) # complies our data
+Bay.net1 <- compile(Bay.net1) # compiles our data
 Bay.net1
 plot(Bay.net1$dag) # plot using the relations used under construction
 plot(moralize(Bay.net1$dag)) # a version which drops directions
