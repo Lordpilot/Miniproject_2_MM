@@ -56,172 +56,152 @@ plot(dg2) # the Bayesian network for our data
 Extract the necessary CPT's from data, and construct the Bayesian network.
 
 # Answer
+Here let $V = \{Asia, Tub, Smoke, Lung, Either, Bronc, Xray, Dysp\}=\{a,t,s,l,e,x,d\}$ denote the total number of nodes.
+Each nodes represent a binary level $\{yes, no\}$.
+For each node $v$ and its parents $pa(v)$ there is a conditional distribution $p(v\mid pa(v))$.
+For more then one parent node, for example two, we write $p(v_1\mid v_2,v_3)$
 
 ```{r} 
-Counting1 <- function(x,y,z){ #counting the number of observation for x and y
- if (x!=0 && y!=0 && z==0){
-  a11 <- (length(which(chestSim1000[x]  == "yes" & chestSim1000[y] == "yes")))
-  a12 <- (length(which(chestSim1000[x] == "no" & chestSim1000[y] == "yes")))
-  a21 <- (length(which(chestSim1000[x] == "yes" & chestSim1000[y] == "no")))
-  a22 <- (length(which(chestSim1000[x] == "no" & chestSim1000[y] == "no")))
-  mat1 <- matrix(c(a11,a12, a21,a22), nrow = 2, byrow = TRUE, dimnames = list(c("yes","no"),c("yes","no")))
-  mat2 <- names(dimnames(mat1))<-c(y,x)
-  print(mat1)
-  } else if(y==0 && z==0) { # counting the number of observations given x and y=0
-  a11 <- (length(which(chestSim1000[x]  == "yes")))
-  a12 <- (length(which(chestSim1000[x] == "no")))
-  mat1 <- matrix(c(a11,a12),1,2 , dimnames = list(c(" "),c("yes","no")))
-  mat2 <- names(dimnames(mat1))<-c(" ",x)
-  print(mat1)
-  } else if(x!=0 && y!=0 && z!=0){ # counting the number of observations given x,y and z
-    a11 <- (length(which(chestSim1000[x]  == "yes" & chestSim1000[y] == "yes" & chestSim1000[z] == "yes")))
-    a12 <- (length(which(chestSim1000[x]  == "yes" & chestSim1000[y] == "no" & chestSim1000[z] == "yes")))
-    a13 <- (length(which(chestSim1000[x]  == "no" & chestSim1000[y] == "yes" & chestSim1000[z] == "yes")))
-    a14 <- (length(which(chestSim1000[x]  == "no" & chestSim1000[y] == "no" & chestSim1000[z] == "yes")))
-    a21 <- (length(which(chestSim1000[x]  == "yes" & chestSim1000[y] == "yes" & chestSim1000[z] == "no")))
-    a22 <- (length(which(chestSim1000[x]  == "yes" & chestSim1000[y] == "no" & chestSim1000[z] == "no")))
-    a23 <- (length(which(chestSim1000[x]  == "no" & chestSim1000[y] == "yes" & chestSim1000[z] == "no")))
-    a24 <- (length(which(chestSim1000[x]  == "no" & chestSim1000[y] == "no" & chestSim1000[z] == "no")))
-    mat1 <- matrix(c(a11,a12,a13,a14, a21,a22,a23,a24), nrow = 2, byrow = TRUE, dimnames = list(c("yes","no"),c("yy","ny","yn","nn")))
-    mat2<-names(dimnames(mat1))<-list(z,c(x,y))
-    print(mat1)
-  }
-}
-
-Counting1("asia","tub","0") # counted values
-Counting1("lung","tub","either") #here yy mean yes and yes for lung and tub
-Counting1("lung","tub","0") # no one has both lung and tub 
-Counting1("bronc","either","dysp")
-# Now we create a list of our CPT
 library(gRain)
-asia1 <- cptable(~asia, values = Counting1("asia","0","0"), levels = c("yes","no")) #putting observations together
-tub.asia1<-cptable(~tub|asia, values = Counting1("asia","tub","0"),levels = c("yes","no")) # tub given asia
-smoke1<-cptable(~smoke,values = Counting1("smoke","0","0"),levels = c("yes","no"))
-lung.smoke1<-cptable(~lung|smoke,values = Counting1("smoke","lung","0"),levels = c("yes","no"))
-bronc.smoke1<-cptable(~bronc|smoke,values = Counting1("smoke","bronc","0"),levels = c("yes","no"))
-either.lung.tub1<-cptable(~either|lung:tub,values = Counting1("lung","tub","either"),levels = c("yes","no")) 
-xray.either1<-cptable(~xray|either,values = Counting1("either","xray","0"),levels = c("yes","no"))
-dysp.bronc.either1<-cptable(~dysp|bronc:either,values = Counting1("bronc","either","dysp"),levels = c("yes","no"))
-CPT.List1 <- compileCPT(list(asia1,tub.asia1,smoke1,lung.smoke1,bronc.smoke1,either.lung.tub1,xray.either1,dysp.bronc.either1))
-CPT.List1 # overview of all CPT's
-CPT.List1$asia #CPT for asia in percent 
-CPT.List1$tub
-CPT.List1$smoke
-CPT.List1$lung
-CPT.List1$bronc
-CPT.List1$either # the normal method can't read the CPT when we have 3 variables
-CPT.List1$xray
-CPT.List1$dysp # the normal method can't read the CPT when we have 3 variables
-ftable(CPT.List1$either, row.vars = 1) #ftable helps us read the CPT when we have more the two variables.
-ftable(CPT.List1$dysp, row.vars = 1)
+asia1 <- xtabs(~asia, chestSim1000); asia1 #putting observations together
+tub.asia1 <- xtabs(~tub+asia, chestSim1000); tub.asia1 # counting tub given asia
+smoke1 <- xtabs(~smoke, chestSim1000); smoke1
+lung.smoke1 <- xtabs(~lung+smoke, chestSim1000); lung.smoke1
+bronc.smoke1 <- xtabs(~bronc+smoke, chestSim1000); bronc.smoke1
+either.lung.tub1 <- xtabs(~either+lung+tub, chestSim1000); either.lung.tub1
+xray.either1 <- xtabs(~xray+either, chestSim1000); xray.either1
+dysp.bronc.either1 <- xtabs(~dysp+bronc+either, chestSim1000); dysp.bronc.either1
+# Constructing the conditional probability tables
+asia1 <-  as.parray(asia1, normalize="first"); asia1 
+tub.asia1 <-  as.parray(tub.asia1, normalize="first"); tub.asia1 
+smoke1 <-  as.parray(smoke1, normalize="first"); smoke1
+lung.smoke1 <-  as.parray(lung.smoke1, normalize="first"); lung.smoke1
+bronc.smoke1 <-  as.parray(bronc.smoke1, normalize="first"); bronc.smoke1
+either.lung.tub1 <-  as.parray(either.lung.tub1, normalize="first"); either.lung.tub1
+  ftable(either.lung.tub1, row.vars = 1) #ftable helps us read the CPT when we have more the two variables.
+xray.either1 <-  as.parray(xray.either1, normalize="first"); xray.either1
+dysp.bronc.either1 <-  as.parray(dysp.bronc.either1, normalize="first"); dysp.bronc.either1
+  ftable(dysp.bronc.either1, row.vars = 1)
+
+CPT.list1 <- compileCPT(list(asia1,tub.asia1,smoke1,lung.smoke1,bronc.smoke1,either.lung.tub1,xray.either1,dysp.bronc.either1))
+CPT.list1 # overview of all CPT's
+# construct the Bayesian network
+plot1=compile(grain(CPT.list1));plot1 
+plot(plot1$dag) # the Directed Acyclic Graph
 ```
+
+The DAG shows the factorization of the joint probability function given by 
+$$p(V ) = P(a) P(t|a) P(s) P(l|s) P(b|s) P(e|t,l) P(d|e,b) P(x|e)$$
+
 
 # Exercise 2
 What does information about "dysp" tell us about "smoke", i.e. what is the conditional distribution of "smoke" given "dysp"?
 
 # Answer
+What we are looking for here is a simple conditional distribution of $p(v\mid pa(v))$ where $v$ is a node and $pa(v)$ denotes the parents node
+
 ```{r}
-dysp1 <- cptable(~ dysp,values = Counting1("dysp","0","0"),levels = c("yes","no")) #counting the number of observations for dysp
-smoke.dysp1 <- cptable(~smoke|dysp,values = Counting1("dysp","smoke","0"),levels = c("yes","no")) # counting smoke given dysp
-CPT.list2 <- compileCPT(list(dysp1,smoke.dysp1)) #creating our CPT
+dysp1 <- xtabs(~dysp, chestSim1000); dysp1 #counting the number of observations for dysp
+smoke.dysp1 <- xtabs(~smoke+dysp, chestSim1000); smoke.dysp1  # counting smoke given dysp
+# Constructing the conditional probability tables
+dysp1 <-  as.parray(dysp1, normalize="first"); dysp1
+smoke.dysp1 <-  as.parray(smoke.dysp1, normalize="first"); smoke.dysp1
+CPT.list2 <- compileCPT(list(dysp1,smoke.dysp1)) #creating our CPT list
 CPT.list2 # overview of CPT's
-CPT.list2$smoke #our CPT for smoke given dysp in percentage
 ```
 
 # Exercise 3
 If we know "smoke", what does additional infomration about "bronc" tell us about "lung"? That is, what is the conditional distribution of "lung" given smoke", and what is the conditional distribution of "lung" given "smoke" and "bronc"?
 
 # Answer
+The first distribution is the simple conditional distribution as we know it $p(v\mid pa(v))$ where as the second distribution is intreast is more challenging $p(v_1\mid v_2, v_3)$ where $pa(v)=\{v_2, v_3\}$.
+
 ```{r}
-smoke1 <- cptable(~ smoke,values = Counting1("smoke","0","0"),levels = c("yes","no")) # counting smoke
-bronc1 <- cptable(~bronc,values = Counting1("bronc","0","0"),levels = c("yes","no")) # counting bronc
-lung.smoke1 <- cptable(~lung1|smoke,values = Counting1("smoke","lung","0"),levels = c("yes","no")) # counting lung given smoke
-lung.smoke.bronc1 <- cptable(~lung2|smoke:bronc,values = Counting1("smoke","bronc","lung"),levels = c("yes","no")) # counting smoke given smoke and bronc 
-CPT.list3 <- compileCPT(list(smoke1,bronc1,lung.smoke1,lung.smoke.bronc1)) #creating our CPT's
+smoke1 <- xtabs(~smoke, chestSim1000); smoke1 # counting smoke
+bronc1 <- xtabs(~bronc, chestSim1000); bronc1 # counting bronc
+lung.smoke1 <- xtabs(~lung+smoke, chestSim1000); lung.smoke1 # counting lung given smoke
+lung.smoke.bronc1 <- xtabs(~lung+smoke+bronc, chestSim1000); lung.smoke.bronc1 # counting smoke given smoke and bronc 
+  ftable(lung.smoke.bronc1, row.vars = 1) #for CPT's of more then two variables
+# Constructing the conditional probability tables
+smoke1 <-  as.parray(smoke1, normalize="first"); smoke1
+bronc1 <-  as.parray(bronc1, normalize="first"); bronc1
+lung.smoke1 <-  as.parray(lung.smoke1, normalize="first"); lung.smoke1
+lung.smoke.bronc1 <-  as.parray(lung.smoke.bronc1, normalize="first"); lung.smoke.bronc1
+CPT.list3 <- compileCPT(list(smoke1,bronc1, lung.smoke.bronc1)) #creating our CPT's note lunge is included two times so we use the largest
 CPT.list3 # overview
-CPT.list3$lung1
-CPT.list3$lung2 # conditional on two variables so not pretty
-ftable(CPT.list3$lung2, row.vars = 1) #for CPT's of more then two variables
+
 ```
 
 # Exercise 4
 If we know "smoke" and "dysp", what does additional information about "bronc" tell us about "lung"?
 
 # Answer
+Here we look at $p(v_1\mid v_2, v_3)$ where $pa(v)=\{v_2, v_3\}$ for "smoke" and "dysp" and  $p(v_1\mid v_2, v_3, v_4)$ where $pa(v)=\{v_2, v_3, v_4\}$ for "smoke", "dysp" and "bronc".
+
 ```{r}
-Counting2 <- function(x,y,z,w){ #counting the number of observation for x,y,z and w
-    a11 <- (length(which(chestSim1000[x]  == "yes" & chestSim1000[y] == "yes" & chestSim1000[z] == "yes" & chestSim1000[w] == "yes")))
-    a12 <- (length(which(chestSim1000[x]  == "yes" & chestSim1000[y] == "yes" & chestSim1000[z] == "no" & chestSim1000[w] == "yes")))
-    a13 <- (length(which(chestSim1000[x]  == "yes" & chestSim1000[y] == "no" & chestSim1000[z] == "yes" & chestSim1000[w] == "yes")))
-    a14 <- (length(which(chestSim1000[x]  == "yes" & chestSim1000[y] == "no" & chestSim1000[z] == "no" & chestSim1000[w] == "yes")))
-    a15 <- (length(which(chestSim1000[x]  == "no" & chestSim1000[y] == "yes" & chestSim1000[z] == "yes" & chestSim1000[w] == "yes")))
-    a16 <- (length(which(chestSim1000[x]  == "no" & chestSim1000[y] == "yes" & chestSim1000[z] == "no" & chestSim1000[w] == "yes")))
-    a17 <- (length(which(chestSim1000[x]  == "no" & chestSim1000[y] == "no" & chestSim1000[z] == "yes" & chestSim1000[w] == "yes")))
-    a18 <- (length(which(chestSim1000[x]  == "no" & chestSim1000[y] == "no" & chestSim1000[z] == "no" & chestSim1000[w] == "yes")))
-    
-    a21 <- (length(which(chestSim1000[x]  == "yes" & chestSim1000[y] == "yes" & chestSim1000[z] == "yes" & chestSim1000[w] == "no")))
-    a22 <- (length(which(chestSim1000[x]  == "yes" & chestSim1000[y] == "yes" & chestSim1000[z] == "no" & chestSim1000[w] == "no")))
-    a23 <- (length(which(chestSim1000[x]  == "yes" & chestSim1000[y] == "no" & chestSim1000[z] == "yes" & chestSim1000[w] == "no")))
-    a24 <- (length(which(chestSim1000[x]  == "yes" & chestSim1000[y] == "no" & chestSim1000[z] == "no" & chestSim1000[w] == "no")))
-    a25 <- (length(which(chestSim1000[x]  == "no" & chestSim1000[y] == "yes" & chestSim1000[z] == "yes" & chestSim1000[w] == "no")))
-    a26 <- (length(which(chestSim1000[x]  == "no" & chestSim1000[y] == "yes" & chestSim1000[z] == "no" & chestSim1000[w] == "no")))
-    a27 <- (length(which(chestSim1000[x]  == "no" & chestSim1000[y] == "no" & chestSim1000[z] == "yes" & chestSim1000[w] == "no")))
-    a28 <- (length(which(chestSim1000[x]  == "no" & chestSim1000[y] == "no" & chestSim1000[z] == "no" & chestSim1000[w] == "no")))
-    mat1 <- matrix(c(a11,a12,a13,a14,a15,a16,a17,a18, a21,a22,a23,a24,a25,a26,a27,a28), nrow = 2, byrow = TRUE, dimnames = list(c("yes","no"),c("yyy","nyy","yny","nny","yyn","nyn","ynn","nnn")))
-    mat2<-names(dimnames(mat1))<-list(w,c(x,y,z))
-    print(mat1)
-}
-Counting2("smoke","dysp","bronc","lung") #our counted variables
-Counting1("smoke", "dysp", "lung")
-smoke1 <- cptable(~ smoke,values = Counting1("smoke","0","0"),levels = c("yes","no")) #counting smoke
-dysp1 <- cptable(~ dysp,values = Counting1("dysp","0","0"),levels = c("yes","no"))
-bronc1 <- cptable(~ bronc,values = Counting1("bronc","0","0"),levels = c("yes","no"))
-lung.smoke.dysp1 <- cptable(~lung1|smoke:dysp, values = Counting1("smoke", "dysp", "lung"),levels = c("yes","no"))
-lung.smoke.dysp.bronc1 <- cptable(~lung2|bronc:dysp:smoke, values = Counting2("bronc","dysp","smoke","lung"),levels = c("yes", "no"))
-CPT.list4 <- compileCPT(list(smoke1,dysp1,bronc1,lung.smoke.dysp1,lung.smoke.dysp.bronc1)) #creating CPT's
+smoke1 <- xtabs(~smoke, chestSim1000); smoke1 #counting smoke
+dysp1 <- xtabs(~dysp, chestSim1000); dysp1
+bronc1 <- xtabs(~bronc, chestSim1000); bronc1
+lung.smoke.dysp1 <- xtabs(~lung+smoke+dysp, chestSim1000); lung.smoke.dysp1
+lung.smoke.dysp.bronc1 <- xtabs(~lung+smoke+dysp+bronc, chestSim1000);lung.smoke.dysp.bronc1
+# Constructing the conditional probability tables
+smoke1 <-  as.parray(smoke1, normalize="first"); smoke1
+dysp1 <-  as.parray(dysp1, normalize="first"); dysp1
+bronc1 <-  as.parray(bronc1, normalize="first"); bronc1
+lung.smoke.dysp1 <-  as.parray(lung.smoke.dysp1, normalize="first"); lung.smoke.dysp1
+  ftable(lung.smoke.dysp1, row.vars = 1) #pretty verison
+lung.smoke.dysp.bronc1 <-  as.parray(lung.smoke.dysp.bronc1, normalize="first"); lung.smoke.dysp.bronc1
+  ftable(lung.smoke.dysp.bronc1, row.vars = 1) #pretty verison
+
+CPT.list4 <- compileCPT(list(smoke1,dysp1,bronc1,lung.smoke.dysp.bronc1)) #creating CPT's list again we use the largest model to avoid repeating nodes
 CPT.list4 # overview
-CPT.list4$lung1
-ftable(CPT.list4$lung1, row.vars = 1) #pretty verison
-CPT.list4$lung2
-ftable(CPT.list4$lung2, row.vars = 1) #pretty version
+
 ```
 
 # Exercise 5
 Sketch the message passing algorithm for finding clique marginals for this specific example
 
 # Answer
+
 ```{r}
 # data from exercise 1
-Bay.net1 <- grain(CPT.List1) #turns our CPT into a graphical independent network
-Bay.net1 <- compile(Bay.net1) # compiles our data
-Bay.net1
-plot(Bay.net1$dag) # plot using the relations used under construction
-plot(moralize(Bay.net1$dag)) # a version which drops directions
-plot(triangulate(moralize(Bay.net1$dag))) # will triangulate a undirected graph by adding fill-ins 
+plot1=compile(grain(CPT.list1)) #turns CPT into a graphical independent network and the compiles them
+plot(plot1$dag) # the plot containing the Directed Acyclic Graph
+plot(moralize(plot1$dag)) # marrying parents and removing directions produces the Moral Graph 
+```
 
+Note here that $P(V)$ has interactions only among neighbours of the undirected moral graph. To understand this let $q(v_2,v_1)$ denote a interaction function from point $v_1$ to $v_2$ without direction so for our data i exercise 1 we have 
+
+$$P(V) = P(a) p(t|a) P(s) P(l|s) P(b|s) P(e|t,l) P(d|e,b) P(x|e)\\
+= q(a) q(t,a) q(s) q(l,s) q(b,s) q(e,t,l) q(d,e,b) q(x,e)$$
+
+Then merging the q-functions that are contained in large q-functions we get
+
+$$P(V)= q(t,a) q(l,s) q(b,s) q(e,t,l) q(d,e,b) q(x,e)$$
+
+The q-function $q(e,t,l)$ is what creats the new interaction between $t$ and $l$.
+
+```{r}
 # data from exercise 2
-Bay.net2 <- grain(CPT.list2)
-Bay.net2 <- compile(Bay.net2)
-Bay.net2
-plot(Bay.net2$dag)
-plot(moralize(Bay.net2$dag))
-plot(triangulate(moralize(Bay.net2$dag)))
+plot2=compile(grain(CPT.list2))
+plot(plot2$dag)
+plot(moralize(plot2$dag))
+```
 
+
+```{r}
 # data from exercise 3
-Bay.net3 <- grain(CPT.list3)
-Bay.net3 <- compile(Bay.net3)
-Bay.net3
-plot(Bay.net3$dag)
-plot(moralize(Bay.net3$dag))
-plot(triangulate(moralize(Bay.net3$dag)))
+plot3=compile(grain(CPT.list3))
+plot(plot3$dag)
+plot(moralize(plot3$dag))
+```
 
+
+```{r}
 # data from exercise 4
-Bay.net4 <- grain(CPT.list4)
-Bay.net4 <- compile(Bay.net4)
-Bay.net4
-plot(Bay.net4$dag)
-plot(moralize(Bay.net4$dag))
-plot(triangulate(moralize(Bay.net4$dag)))
+plot4=compile(grain(CPT.list4))
+plot(plot4$dag)
+plot(moralize(plot4$dag))
 ```
 
 # Part 2, initial work
