@@ -187,7 +187,11 @@ plot2=compile(grain(CPT.list2))
 plot(plot2$dag)
 plot(moralize(plot2$dag))
 ```
-
+Here we have 
+$$P(V)=P(d) P(s\mid d)\\
+= q(d) q(s, d)$$
+then merging gives
+$$P(V)=q(s, d)$$
 
 ```{r}
 # data from exercise 3
@@ -195,7 +199,11 @@ plot3=compile(grain(CPT.list3))
 plot(plot3$dag)
 plot(moralize(plot3$dag))
 ```
-
+Here we have 
+$$P(V)=P(s) P(b) P(l\mid s, b)\\
+= q(s) q(b) q(l,s,b)$$
+Merging gives
+$$P(V)=q(l,s,b)$$
 
 ```{r}
 # data from exercise 4
@@ -203,6 +211,11 @@ plot4=compile(grain(CPT.list4))
 plot(plot4$dag)
 plot(moralize(plot4$dag))
 ```
+Here we have 
+$$P(V)=P(s) P(d) P(b) P(l\mid s,d,b)\\
+=q(s) q(d) q(b) q(l,s,d,b)$$
+Mergining gives
+$$P(V)=q(l,s,d,b)$$
 
 # Part 2, initial work
 Consider the "cad" data in "gRbase". There are two dataset: "cad1" which is complete and "cad2" which has missing values here and there.
