@@ -197,6 +197,7 @@ plot2=compile(grain(CPT.list2))
 plot(plot2$dag)
 plot(moralize(plot2$dag))
 ```
+
 Here we have 
 $$P(V)=P(d) P(s\mid d)\\
 = q(d) q(s, d)$$
@@ -209,6 +210,7 @@ plot3=compile(grain(CPT.list3))
 plot(plot3$dag)
 plot(moralize(plot3$dag))
 ```
+
 Here we have 
 $$P(V)=P(s) P(b) P(l\mid s, b)\\
 = q(s) q(b) q(l,s,b)$$
@@ -221,6 +223,7 @@ plot4=compile(grain(CPT.list4))
 plot(plot4$dag)
 plot(moralize(plot4$dag))
 ```
+
 Here we have 
 $$P(V)=P(s) P(d) P(b) P(l\mid s,d,b)\\
 =q(s) q(d) q(b) q(l,s,d,b)$$
