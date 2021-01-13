@@ -58,6 +58,7 @@ Extract the necessary CPT's from data, and construct the Bayesian network.
 # Answer
 Here let $V = \{Asia, Tub, Smoke, Lung, Either, Bronc, Xray, Dysp\}=\{a,t,s,l,e,x,d\}$ denote the total number of nodes.
 Each nodes represent a binary level $\{yes, no\}$.
+
 For each node $v$ and its parents $pa(v)$ there is a conditional distribution $p(v\mid pa(v))$.
 For more then one parent node, for example two, we write $p(v_1\mid v_2,v_3)$
 
@@ -92,7 +93,9 @@ plot(plot1$dag) # the Directed Acyclic Graph
 
 The DAG shows the factorization of the joint probability function given by 
 $$p(V ) = P(a) P(t|a) P(s) P(l|s) P(b|s) P(e|t,l) P(d|e,b) P(x|e)$$
-
+More generally written we have that a DAG with $V$ nodes allowsus to construct a joint distribution by combining univariante condiional distribution by 
+$$P(V)=\prod_{v}P(v\mid pa(v)$$
+We see here that for $P(V)$ representet by a table would be a table with $2^{8}=256$ entries
 
 # Exercise 2
 What does information about "dysp" tell us about "smoke", i.e. what is the conditional distribution of "smoke" given "dysp"?
@@ -161,6 +164,12 @@ CPT.list4 # overview
 # Exercise 5
 Sketch the message passing algorithm for finding clique marginals for this specific example
 
+```{r}
+library(gRbase)
+library(gRain)
+```
+
+
 # Answer
 
 ```{r}
@@ -178,6 +187,11 @@ $$P(V) = P(a) p(t|a) P(s) P(l|s) P(b|s) P(e|t,l) P(d|e,b) P(x|e)\\
 Then merging the q-functions that are contained in large q-functions we get
 
 $$P(V)= q(t,a) q(l,s) q(b,s) q(e,t,l) q(d,e,b) q(x,e)$$
+These are then the clique marginals in the sense that $P(l,s)=q(l,s)$ and so forth, these clique marginls can be extracted directly
+```{r}
+lung.smoke1 <- xtabs(~lung+smoke, chestSim1000); lung.smoke1
+```
+
 
 The q-function $q(e,t,l)$ is what creats the new interaction between $t$ and $l$.
 
