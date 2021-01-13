@@ -1487,7 +1487,7 @@ window.onload = function() {
   div.column{display: inline-block; vertical-align: top; width: 50%;}
   div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
   ul.task-list{list-style: none;}
-    </style>
+      </style>
 
 <style type="text/css">code{white-space: pre;}</style>
 <style type="text/css">
@@ -1533,7 +1533,6 @@ h6 {
   text-align: left;
 }
 </style>
-
 
 
 
@@ -1655,7 +1654,7 @@ summary {
 head(chestSim1000) # our data</code></pre>
 <div data-pagedtable="false">
 <script data-pagedtable-source type="application/json">
-{"columns":[{"label":[""],"name":["_rn_"],"type":[""],"align":["left"]},{"label":["asia"],"name":[1],"type":["fct"],"align":["left"]},{"label":["tub"],"name":[2],"type":["fct"],"align":["left"]},{"label":["smoke"],"name":[3],"type":["fct"],"align":["left"]},{"label":["lung"],"name":[4],"type":["fct"],"align":["left"]},{"label":["bronc"],"name":[5],"type":["fct"],"align":["left"]},{"label":["either"],"name":[6],"type":["fct"],"align":["left"]},{"label":["xray"],"name":[7],"type":["fct"],"align":["left"]},{"label":["dysp"],"name":[8],"type":["fct"],"align":["left"]}],"data":[{"1":"no","2":"no","3":"no","4":"no","5":"yes","6":"no","7":"no","8":"yes","_rn_":"1"},{"1":"no","2":"no","3":"yes","4":"no","5":"yes","6":"no","7":"no","8":"yes","_rn_":"2"},{"1":"no","2":"no","3":"yes","4":"no","5":"no","6":"no","7":"no","8":"no","_rn_":"3"},{"1":"no","2":"no","3":"no","4":"no","5":"no","6":"no","7":"no","8":"no","_rn_":"4"},{"1":"no","2":"no","3":"yes","4":"no","5":"yes","6":"no","7":"no","8":"yes","_rn_":"5"},{"1":"no","2":"no","3":"yes","4":"yes","5":"yes","6":"yes","7":"yes","8":"yes","_rn_":"6"}],"options":{"columns":{"min":{},"max":[10]},"rows":{"min":[10],"max":[10]},"pages":{}}}
+{"columns":[{"label":[""],"name":["_rn_"],"type":[""],"align":["left"]},{"label":["asia"],"name":[1],"type":["fctr"],"align":["left"]},{"label":["tub"],"name":[2],"type":["fctr"],"align":["left"]},{"label":["smoke"],"name":[3],"type":["fctr"],"align":["left"]},{"label":["lung"],"name":[4],"type":["fctr"],"align":["left"]},{"label":["bronc"],"name":[5],"type":["fctr"],"align":["left"]},{"label":["either"],"name":[6],"type":["fctr"],"align":["left"]},{"label":["xray"],"name":[7],"type":["fctr"],"align":["left"]},{"label":["dysp"],"name":[8],"type":["fctr"],"align":["left"]}],"data":[{"1":"no","2":"no","3":"no","4":"no","5":"yes","6":"no","7":"no","8":"yes","_rn_":"1"},{"1":"no","2":"no","3":"yes","4":"no","5":"yes","6":"no","7":"no","8":"yes","_rn_":"2"},{"1":"no","2":"no","3":"yes","4":"no","5":"no","6":"no","7":"no","8":"no","_rn_":"3"},{"1":"no","2":"no","3":"no","4":"no","5":"no","6":"no","7":"no","8":"no","_rn_":"4"},{"1":"no","2":"no","3":"yes","4":"no","5":"yes","6":"no","7":"no","8":"yes","_rn_":"5"},{"1":"no","2":"no","3":"yes","4":"yes","5":"yes","6":"yes","7":"yes","8":"yes","_rn_":"6"}],"options":{"columns":{"min":{},"max":[10]},"rows":{"min":[10],"max":[10]},"pages":{}}}
   </script>
 </div>
 <pre class="r"><code>length(chestSim1000[,1]) # our data consists of 1000 observations</code></pre>
@@ -2153,6 +2152,7 @@ plot(plot4$dag)</code></pre>
 library(gRbase)
 library(gRain)
 library(bnlearn)</code></pre>
+<pre><code>## Warning: package &#39;bnlearn&#39; was built under R version 4.0.3</code></pre>
 <pre><code>## 
 ## Attaching package: &#39;bnlearn&#39;</code></pre>
 <pre><code>## The following objects are masked from &#39;package:gRbase&#39;:
@@ -2329,7 +2329,7 @@ table(wdat2$CAD, pred3$pred$CAD)/40*100</code></pre>
 
 // add bootstrap table styles to pandoc tables
 function bootstrapStylePandocTables() {
-  $('tr.odd').parent('tbody').parent('table').addClass('table table-condensed');
+  $('tr.header').parent('thead').parent('table').addClass('table table-condensed');
 }
 $(document).ready(function () {
   bootstrapStylePandocTables();
