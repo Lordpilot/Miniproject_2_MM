@@ -59,8 +59,8 @@ Extract the necessary CPT's from data, and construct the Bayesian network.
 Here let $V = \{Asia, Tub, Smoke, Lung, Either, Bronc, Xray, Dysp\}=\{a,t,s,l,e,x,d\}$ denote the total number of nodes.
 Each nodes represent a binary level $\{yes, no\}$.
 
-For each node $v$ and its parents $pa(v)$ there is a conditional distribution $p(v\mid pa(v))$.
-For more then one parent node, for example two, we write $p(v_1\mid v_2,v_3)$
+For each node $v$ and its parents $pa(v)$ there is a conditional distribution $P(v\mid pa(v))$.
+For more then one parent node, for example two, we write $P(v_1\mid v_2,v_3)$
 
 ```{r} 
 library(gRain)
@@ -91,7 +91,7 @@ plot(plot1$dag) # the Directed Acyclic Graph
 ```
 
 The DAG shows the factorization of the joint probability function given by 
-$$p(V ) = P(a) P(t|a) P(s) P(l|s) P(b|s) P(e|t,l) P(d|e,b) P(x|e)$$
+$$P(V ) = P(a) P(t|a) P(s) P(l|s) P(b|s) P(e|t,l) P(d|e,b) P(x|e)$$
 More generally written we have that a DAG with $V$ nodes allowsus to construct a joint distribution by combining univariante condiional distribution by 
 $$P(V)=\prod_{v}P(v\mid pa(v)$$
 We see here that for $P(V)$ representet by a table would be a table with $2^{8}=256$ entries
@@ -137,7 +137,7 @@ CPT.list3 # overview
 If we know "smoke" and "dysp", what does additional information about "bronc" tell us about "lung"?
 
 # Answer
-Here we look at $p(v_1\mid v_2, v_3)$ where $pa(v)=\{v_2, v_3\}$ for "smoke" and "dysp" and  $p(v_1\mid v_2, v_3, v_4)$ where $pa(v)=\{v_2, v_3, v_4\}$ for "smoke", "dysp" and "bronc".
+Here we look at $P(v_1\mid v_2, v_3)$ where $pa(v)=\{v_2, v_3\}$ for "smoke" and "dysp" and  $P(v_1\mid v_2, v_3, v_4)$ where $pa(v)=\{v_2, v_3, v_4\}$ for "smoke", "dysp" and "bronc".
 
 ```{r}
 smoke1 <- xtabs(~smoke, chestSim1000); smoke1 #counting smoke
