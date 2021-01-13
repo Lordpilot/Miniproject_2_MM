@@ -1,6 +1,6 @@
 ---
 title: "MM2-eksamen"
-author: "Mads Hovaldt"
+author: "Gruppe 1.211"
 date: "28/10/2020"
 output:
   html_document:
