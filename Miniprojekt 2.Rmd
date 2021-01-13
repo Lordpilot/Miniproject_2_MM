@@ -45,13 +45,6 @@ plot(dg1) # example of a bayesian network
 
 
 
-
-```{r}
-dg2<-dag(~ asia+tub|asia+ either|tub:lung+smoke+lung|smoke+bronc|smoke+dysp|either:bronc+xray|either)
-plot(dg2) # the Bayesian network for our data 
-```
-
-
 # Exercise 1 
 Extract the necessary CPT's from data, and construct the Bayesian network.
 
