@@ -85,8 +85,11 @@ plot(plot1$dag) # the Directed Acyclic Graph
 
 The DAG shows the factorization of the joint probability function given by 
 $$P(V ) = P(a) P(t|a) P(s) P(l|s) P(b|s) P(e|t,l) P(d|e,b) P(x|e)$$
-More generally written we have that a DAG with $V$ nodes allowsus to construct a joint distribution by combining univariante condiional distribution by 
-$$P(V)=\prod_{v}P(v\mid pa(v)$$
+More generally written we have that a DAG with $V$ nodes allows us to construct a joint distribution by combining univariante condiional distribution by 
+$$P(V)=\prod_{v}P(v\mid pa(v))$$
+
+### The curse of dimensionality
+
 We see here that for $P(V)$ representet by a table would be a table with $2^{8}=256$ entries
 
 # Exercise 2
