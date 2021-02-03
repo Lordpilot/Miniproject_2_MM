@@ -3,6 +3,7 @@ title: "MM2-eksamen"
 author: "Gruppe 1.211"
 date: "28/10/2020"
 output:
+  pdf_document: default
   html_document:
     df_print: paged
 ---
@@ -38,6 +39,8 @@ Here is a short explanation of the variables in the dataset.
 
 Shortness-of-breath (dyspnoea) may be due to tuberculosis, lung cancer, bronchitis, none of them, or more than one of them. A recent visit to Asia increases the chances of tuberculosis, while smoking is known to be a risk factor for both lung cancer and bronchitis. The results of a single chest X-ray do not discriminate between lung cancer and tuberculosis, as does neither the presence nor absence of dyspnoea. (citat direkte sat ind fra https://arxiv.org/pdf/1301.7394.pdf)
 
+
+Now consider the following excerpt from the chest clinic examples:
 ```{r}
 dg1 <- dag(~ S + L|S + X|L:S + B|S + D|L:B)
 plot(dg1) # example of a bayesian network
@@ -55,8 +58,60 @@ Each nodes represent a binary level $\{yes, no\}$.
 For each node $v$ and its parents $pa(v)$ there is a conditional distribution $P(v\mid pa(v))$.
 For more then one parent node, for example two, we write $P(v_1\mid v_2,v_3)$
 
+By inspection of the graph above, we observe that we need $P(S)$, $P(B|S)$, $P(D|B,L)$, $P(L|S)$ and $P(X|L,S)$ for the joint distribution.
+
+```{r}
+n.cis <- xtabs(~smoke + lung + xray + bronc + dysp, data = chestSim1000) # An overview of the data
+as.data.frame(n.cis) #Shows frequency of each combination
+```
+
+Now the CPTs for the probabilities
+
+```{r}
+p.s <- tabDist(n.cis, marg = ~ smoke);p.s #P(S)
+```
+
+```{r}
+cpt.bs <- tabDist(n.cis, marg = ~ bronc, cond = ~ smoke) #P(B|S)
+cpt.bs %>% ftable(row.vars = "bronc")
+```
+
+```{r}
+cpt.dbl <- tabDist(n.cis, marg = ~ dysp, cond = ~ bronc:lung) #P(D|B,L)
+cpt.dbl %>% ftable(row.vars = "dysp")
+```
+
+```{r}
+cpt.ls <- tabDist(n.cis, marg = ~ lung, cond = ~ smoke) #P(L|S)
+cpt.ls %>% ftable(row.vars = "lung")
+```
+
+```{r}
+cpt.xls <- tabDist(n.cis, marg = ~ xray, cond = ~ lung:smoke) #P(X|L,S)
+cpt.xls %>% ftable(row.vars = "xray")
+```
+
+```{r}
+cptlist <- compileCPT(list(p.s, cpt.ls, cpt.xls, cpt.bs, cpt.dbl))
+grn1 <- grain(cptlist)
+plot1=compile(grn1);plot1 
+plot(plot1$dag)
+```
+
 ```{r} 
-library(gRain)
+#noget sm gjorde
+plist <- compileCPT(list(p.s, cpt.ls, cpt.xls, cpt.bs, cpt.dlb))
+grn1 <- grain(plist)
+summary(grn1)
+
+plot(grn1)
+
+grn1c <- propagate(grn1)
+summary(grn1c)
+```
+
+```{r} 
+library(gRain) #DET HER SKAL NOK SLETTES! SLETTES NED TIL OPG 2?
 asia1 <- xtabs(~asia, chestSim1000); asia1 #putting observations together
 tub.asia1 <- xtabs(~tub+asia, chestSim1000); tub.asia1 # counting tub given asia
 smoke1 <- xtabs(~smoke, chestSim1000); smoke1
@@ -99,6 +154,20 @@ What does information about "dysp" tell us about "smoke", i.e. what is the condi
 What we are looking for here is a simple conditional distribution of $p(v\mid pa(v))$ where $v$ is a node and $pa(v)$ denotes the parents node
 
 ```{r}
+querygrain(grn1c, nodes = c("smoke", "dysp"), type ="conditional") %>%
+  ftable(row.vars = "smoke")
+#given that that the person has dysp or not, gives respectively 61% or 36% chance of the person to be a smoker.
+```
+
+```{r}
+querygrain(grn1, nodes = c("smoke", "dysp"), type ="conditional") #hvad er forskellen på når funktionen propagate er brugt? SLETTES MÅSKE
+```
+
+
+
+
+```{r} 
+#SLETTES
 dysp1 <- xtabs(~dysp, chestSim1000); dysp1 #counting the number of observations for dysp
 smoke.dysp1 <- xtabs(~smoke+dysp, chestSim1000); smoke.dysp1  # counting smoke given dysp
 # Constructing the conditional probability tables
@@ -112,9 +181,21 @@ CPT.list2 # overview of CPT's
 If we know "smoke", what does additional infomration about "bronc" tell us about "lung"? That is, what is the conditional distribution of "lung" given smoke", and what is the conditional distribution of "lung" given "smoke" and "bronc"?
 
 # Answer
-The first distribution is the simple conditional distribution as we know it $p(v\mid pa(v))$ where as the second distribution is intreast is more challenging $p(v_1\mid v_2, v_3)$ where $pa(v)=\{v_2, v_3\}$.
+The first distribution is the simple conditional distribution as we know it $p(v\mid pa(v))$ where as the second distribution is a little more complex $p(v_1\mid v_2, v_3)$ where $pa(v_1)=\{v_2, v_3\}$.
 
 ```{r}
+querygrain(grn1c, nodes = c("lung","smoke"), type ="conditional") %>%
+  ftable(row.vars = "lung")
+```
+
+```{r}
+querygrain(grn1c, nodes = c("lung","smoke", "bronc"), type ="conditional") %>%
+  ftable(row.vars = "lung")
+```
+We see that additional information about bronc does not have any influence on lung. This suits the DAG of the bayesian network.
+
+```{r}
+#SLETTES
 smoke1 <- xtabs(~smoke, chestSim1000); smoke1 # counting smoke
 bronc1 <- xtabs(~bronc, chestSim1000); bronc1 # counting bronc
 lung.smoke1 <- xtabs(~lung+smoke, chestSim1000); lung.smoke1 # counting lung given smoke
