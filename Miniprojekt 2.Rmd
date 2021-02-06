@@ -3,9 +3,9 @@ title: "MM2-eksamen"
 author: "Gruppe 1.211"
 date: "28/10/2020"
 output:
-  pdf_document: default
   html_document:
     df_print: paged
+  pdf_document: default
 ---
 
 ```{r setup, include=FALSE}
@@ -94,58 +94,17 @@ cpt.xls %>% ftable(row.vars = "xray")
 ```{r}
 cptlist <- compileCPT(list(p.s, cpt.ls, cpt.xls, cpt.bs, cpt.dbl))
 grn1 <- grain(cptlist)
+grn1c <- propagate(grn1)
 plot1=compile(grn1);plot1 
 plot(plot1$dag)
 ```
 
-```{r} 
-#noget sm gjorde
-plist <- compileCPT(list(p.s, cpt.ls, cpt.xls, cpt.bs, cpt.dlb))
-grn1 <- grain(plist)
-summary(grn1)
 
-plot(grn1)
-
-grn1c <- propagate(grn1)
-summary(grn1c)
-```
-
-```{r} 
-library(gRain) #DET HER SKAL NOK SLETTES! SLETTES NED TIL OPG 2?
-asia1 <- xtabs(~asia, chestSim1000); asia1 #putting observations together
-tub.asia1 <- xtabs(~tub+asia, chestSim1000); tub.asia1 # counting tub given asia
-smoke1 <- xtabs(~smoke, chestSim1000); smoke1
-lung.smoke1 <- xtabs(~lung+smoke, chestSim1000); lung.smoke1
-bronc.smoke1 <- xtabs(~bronc+smoke, chestSim1000); bronc.smoke1
-either.lung.tub1 <- xtabs(~either+lung+tub, chestSim1000); either.lung.tub1
-xray.either1 <- xtabs(~xray+either, chestSim1000); xray.either1
-dysp.bronc.either1 <- xtabs(~dysp+bronc+either, chestSim1000); dysp.bronc.either1
-# Constructing the conditional probability tables
-asia1 <-  as.parray(asia1, normalize="first"); asia1 
-tub.asia1 <-  as.parray(tub.asia1, normalize="first"); tub.asia1 
-smoke1 <-  as.parray(smoke1, normalize="first"); smoke1
-lung.smoke1 <-  as.parray(lung.smoke1, normalize="first"); lung.smoke1
-bronc.smoke1 <-  as.parray(bronc.smoke1, normalize="first"); bronc.smoke1
-either.lung.tub1 <-  as.parray(either.lung.tub1, normalize="first"); either.lung.tub1
-  ftable(either.lung.tub1, row.vars = 1) #ftable helps us read the CPT when we have more the two variables.
-xray.either1 <-  as.parray(xray.either1, normalize="first"); xray.either1
-dysp.bronc.either1 <-  as.parray(dysp.bronc.either1, normalize="first"); dysp.bronc.either1
-  ftable(dysp.bronc.either1, row.vars = 1)
-CPT.list1 <- compileCPT(list(asia1,tub.asia1,smoke1,lung.smoke1,bronc.smoke1,either.lung.tub1,xray.either1,dysp.bronc.either1))
-CPT.list1 # overview of all CPT's
-# construct the Bayesian network
-plot1=compile(grain(CPT.list1));plot1 
-plot(plot1$dag) # the Directed Acyclic Graph
-```
 
 The DAG shows the factorization of the joint probability function given by 
-$$P(V ) = P(a) P(t|a) P(s) P(l|s) P(b|s) P(e|t,l) P(d|e,b) P(x|e)$$
+$$P(V ) = P(s) P(l|s) P(b|s) P(d|l,b)    P(x|l,s)$$
 More generally written we have that a DAG with $V$ nodes allows us to construct a joint distribution by combining univariante condiional distribution by 
 $$P(V)=\prod_{v}P(v\mid pa(v))$$
-
-### The curse of dimensionality
-
-We see here that for $P(V)$ representet by a table would be a table with $2^{8}=256$ entries
 
 # Exercise 2
 What does information about "dysp" tell us about "smoke", i.e. what is the conditional distribution of "smoke" given "dysp"?
@@ -166,17 +125,6 @@ querygrain(grn1, nodes = c("smoke", "dysp"), type ="conditional") #hvad er forsk
 
 
 
-```{r} 
-#SLETTES
-dysp1 <- xtabs(~dysp, chestSim1000); dysp1 #counting the number of observations for dysp
-smoke.dysp1 <- xtabs(~smoke+dysp, chestSim1000); smoke.dysp1  # counting smoke given dysp
-# Constructing the conditional probability tables
-dysp1 <-  as.parray(dysp1, normalize="first"); dysp1
-smoke.dysp1 <-  as.parray(smoke.dysp1, normalize="first"); smoke.dysp1
-CPT.list2 <- compileCPT(list(dysp1,smoke.dysp1)) #creating our CPT list
-CPT.list2 # overview of CPT's
-```
-
 # Exercise 3
 If we know "smoke", what does additional infomration about "bronc" tell us about "lung"? That is, what is the conditional distribution of "lung" given smoke", and what is the conditional distribution of "lung" given "smoke" and "bronc"?
 
@@ -194,45 +142,29 @@ querygrain(grn1c, nodes = c("lung","smoke", "bronc"), type ="conditional") %>%
 ```
 We see that additional information about bronc does not have any influence on lung. This suits the DAG of the bayesian network.
 
-```{r}
-#SLETTES
-smoke1 <- xtabs(~smoke, chestSim1000); smoke1 # counting smoke
-bronc1 <- xtabs(~bronc, chestSim1000); bronc1 # counting bronc
-lung.smoke1 <- xtabs(~lung+smoke, chestSim1000); lung.smoke1 # counting lung given smoke
-lung.smoke.bronc1 <- xtabs(~lung+smoke+bronc, chestSim1000); lung.smoke.bronc1 # counting smoke given smoke and bronc 
-  ftable(lung.smoke.bronc1, row.vars = 1) #for CPT's of more then two variables
-# Constructing the conditional probability tables
-smoke1 <-  as.parray(smoke1, normalize="first"); smoke1
-bronc1 <-  as.parray(bronc1, normalize="first"); bronc1
-lung.smoke1 <-  as.parray(lung.smoke1, normalize="first"); lung.smoke1
-lung.smoke.bronc1 <-  as.parray(lung.smoke.bronc1, normalize="first"); lung.smoke.bronc1
-CPT.list3 <- compileCPT(list(smoke1,bronc1, lung.smoke.bronc1)) #creating our CPT's note lunge is included two times so we use the largest
-CPT.list3 # overview
-```
+
 
 # Exercise 4
 If we know "smoke" and "dysp", what does additional information about "bronc" tell us about "lung"?
 
 # Answer
-Here we look at $P(v_1\mid v_2, v_3)$ where $pa(v)=\{v_2, v_3\}$ for "smoke" and "dysp" and  $P(v_1\mid v_2, v_3, v_4)$ where $pa(v)=\{v_2, v_3, v_4\}$ for "smoke", "dysp" and "bronc".
+Here we look at $P(v_1\mid v_2, v_3)$ where $pa(v_1)=\{v_2, v_3\}$ for "smoke" and "dysp" and  $P(v_1\mid v_2, v_3, v_4)$ where $pa(v)=\{v_2, v_3, v_4\}$ for "smoke", "dysp" and "bronc".
 
 ```{r}
-smoke1 <- xtabs(~smoke, chestSim1000); smoke1 #counting smoke
-dysp1 <- xtabs(~dysp, chestSim1000); dysp1
-bronc1 <- xtabs(~bronc, chestSim1000); bronc1
-lung.smoke.dysp1 <- xtabs(~lung+smoke+dysp, chestSim1000); lung.smoke.dysp1
-lung.smoke.dysp.bronc1 <- xtabs(~lung+smoke+dysp+bronc, chestSim1000);lung.smoke.dysp.bronc1
-# Constructing the conditional probability tables
-smoke1 <-  as.parray(smoke1, normalize="first"); smoke1
-dysp1 <-  as.parray(dysp1, normalize="first"); dysp1
-bronc1 <-  as.parray(bronc1, normalize="first"); bronc1
-lung.smoke.dysp1 <-  as.parray(lung.smoke.dysp1, normalize="first"); lung.smoke.dysp1
-  ftable(lung.smoke.dysp1, row.vars = 1) #pretty verison
-lung.smoke.dysp.bronc1 <-  as.parray(lung.smoke.dysp.bronc1, normalize="first"); lung.smoke.dysp.bronc1
-  ftable(lung.smoke.dysp.bronc1, row.vars = 1) #pretty verison
-CPT.list4 <- compileCPT(list(smoke1,dysp1,bronc1,lung.smoke.dysp.bronc1)) #creating CPT's list again we use the largest model to avoid repeating nodes
-CPT.list4 # overview
+querygrain(grn1c, nodes = c("lung","smoke", "dysp"), type ="conditional") %>%
+  ftable(row.vars = "lung")
 ```
+
+```{r}
+querygrain(grn1c, nodes = c("lung","smoke","dysp", "bronc"), type ="conditional") %>%
+  ftable(row.vars = "lung")
+```
+
+This exercise is different from exercise 3, as dysp is now a factor, and lung and bronc are not independent given dysp. This is called common effect. 
+
+If we know dysp and bronc are true, there is a smaller chance that lung is true. In other words, if you have dysp, caused by bronc, then it is unlikely that the patient has lung cancer.
+
+
 
 # Exercise 5
 Sketch the message passing algorithm for finding clique marginals for this specific example
@@ -247,7 +179,7 @@ library(gRain)
 
 ```{r}
 # data from exercise 1
-plot1=compile(grain(CPT.list1)) #turns CPT into a graphical independent network and the compiles them
+plot1=compile(grain(cptlist)) #turns CPT into a graphical independent network and the compiles them
 plot(plot1$dag) # the plot containing the Directed Acyclic Graph
 plot(moralize(plot1$dag)) # marrying parents and removing directions produces the Moral Graph 
 ```
@@ -270,9 +202,9 @@ The q-function $q(e,t,l)$ is what creats the new interaction between $t$ and $l$
 
 ```{r}
 # data from exercise 2
-plot2=compile(grain(CPT.list2))
-plot(plot2$dag)
-plot(moralize(plot2$dag))
+#plot2=compile(grain(CPT.list2))
+#plot(plot2$dag)
+#plot(moralize(plot2$dag))
 ```
 
 Here we have 
@@ -283,9 +215,9 @@ $$P(V)=q(s, d)$$
 
 ```{r}
 # data from exercise 3
-plot3=compile(grain(CPT.list3))
-plot(plot3$dag)
-plot(moralize(plot3$dag))
+#plot3=compile(grain(CPT.list3))
+#plot(plot3$dag)
+#plot(moralize(plot3$dag))
 ```
 
 Here we have 
@@ -296,9 +228,9 @@ $$P(V)=q(l,s,b)$$
 
 ```{r}
 # data from exercise 4
-plot4=compile(grain(CPT.list4))
-plot(plot4$dag)
-plot(moralize(plot4$dag))
+#plot4=compile(grain(CPT.list4))
+#plot(plot4$dag)
+#plot(moralize(plot4$dag))
 ```
 
 Here we have 
